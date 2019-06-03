@@ -1,5 +1,3 @@
-# R implementation of "An improved differential evolution algorithm for optimization 
-# including linear equality constraints" by Barbosa, Bernardino, and Angelo
 gen_init_pop <- function(E, const, NP, boxbounds) {
   if(!is.matrix(boxbounds)) {
     stop("'boxbounds' must be a matrix.")
