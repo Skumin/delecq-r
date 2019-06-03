@@ -1,4 +1,5 @@
-# R implementation of "An improved differential evolution algorithm for optimization including linear equality constraints" by Barbosa, Bernardino, and Angelo
+# R implementation of "An improved differential evolution algorithm for optimization 
+# including linear equality constraints" by Barbosa, Bernardino, and Angelo
 gen_init_pop <- function(E, const, NP, boxbounds) {
   if(!is.matrix(boxbounds)) {
     stop("'boxbounds' must be a matrix.")
@@ -44,7 +45,7 @@ gen_init_pop <- function(E, const, NP, boxbounds) {
 gen_init_pop_simple <- function(NP, boxbounds) {
   dm <- nrow(boxbounds)
   if(is.null(NP)) {
-    NP <- dm * 10
+    NP <- dm * 20
   }
   if(!is.matrix(boxbounds)) {
     stop("'boxbounds' must be a matrix.")
@@ -104,7 +105,7 @@ project_population_delecq <- function(mat) {
   return(projmat)
 }
 
-run_delecq <- function(fun, ..., boxbounds, cr = 0.5, f.param = 0.5, maxgen = 1000, NP = NULL) {
+run_delecq <- function(fun, ..., boxbounds, cr = 0.5, f.param = 0.5, maxgen = 500, NP = NULL) {
   gen <- 1
   mat <- gen_init_pop_simple(NP = NP, boxbounds = boxbounds)
   funvals <- apply(X = mat, MARGIN = 1, FUN = fun, ...)
