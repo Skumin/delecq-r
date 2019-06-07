@@ -1,16 +1,25 @@
+#include <vector>
+#include <iostream>
+#include <algorithm>
+#include <cstdlib>
 #include <Rcpp.h>
 using namespace Rcpp;
 
-template <int RTYPE>
-inline Rcpp::Vector<RTYPE> 
-anti_subset(const Rcpp::Vector<RTYPE>& x, Rcpp::IntegerVector idx) {
-  Rcpp::IntegerVector xi = Rcpp::seq(0, x.size() - 1);
-  return x[Rcpp::setdiff(xi, idx)];
+// [[Rcpp::plugins(cpp11)]]
+
+// [[Rcpp::export]]
+IntegerVector sequenceVec(int n) {
+  std::vector<int> ivec (n, 1);
+  std::iota(ivec.begin(), ivec.end(), 0);
+  return wrap(ivec);
 }
 
 // [[Rcpp::export]]
-Rcpp::IntegerVector AntiSubset(Rcpp::IntegerVector x, Rcpp::IntegerVector idx) {
-  return anti_subset(x, idx); // Write some commment here
+IntegerVector eraseInd(IntegerVector ivec, int eras) {
+  IntegerVector newvec = clone(ivec);
+  std::vector<int> newvec1 = as<std::vector<int> >(newvec);
+  newvec1.erase (newvec1.begin()+eras);
+  return wrap(newvec1);
 }
 
 // [[Rcpp::export]]
@@ -18,11 +27,11 @@ NumericMatrix mutateC(NumericMatrix mat, NumericMatrix boxbounds, double fParam)
   NumericMatrix newmat(mat.nrow(), mat.ncol());
   int matsize = newmat.nrow();
   int parsize = newmat.ncol();
+  IntegerVector rngg1 = sequenceVec(matsize);
   for (int i = 0; i < matsize; i++) {
+    IntegerVector rngg = eraseInd(rngg1, i);
     int boundsok = 0;
     while (boundsok == 0) {
-      IntegerVector rngg = seq(0, matsize - 1);
-      rngg = AntiSubset(rngg, i);
       IntegerVector rs = sample(rngg, 3, false);
       NumericVector num = mat(rs[0], _ ) + fParam * (mat(rs[1], _ ) - mat(rs[2], _ ));
       IntegerVector tst(parsize);
