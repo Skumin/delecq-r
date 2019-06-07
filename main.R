@@ -147,3 +147,48 @@ run_delecq <- function(fun, ..., boxbounds, cr = 0.5, f.param = 0.5, maxgen = 50
   }
   return(list(params = mat[rbest, ], value = fun(mat[rbest, ], ...), generations = trugen))
 }
+
+run_delecqC <- function(fun, ..., boxbounds, cr = 0.5, f.param = 0.5, maxgen = 500, NP = NULL, show.progress = TRUE) {
+  gen <- 1
+  mat <- gen_init_pop_simple(NP = NP, boxbounds = boxbounds)
+  funvals <- apply(X = mat, MARGIN = 1, FUN = fun, ...)
+  rbest <- which.max(funvals)
+  trugen <- maxgen
+  while(gen <= trugen) {
+    if(show.progress) {
+      print(paste0('Generation ', gen))
+    }
+    pbest <- rbest
+    pbest_ind <- mat[pbest, ]
+    pbest_val <- fun(pbest_ind, ...)
+    newmat <- mutateC(mat = mat, boxbounds = boxbounds, fParam = f.param)
+    newmat <- crossover_delecq(mat = mat, newmat = newmat, cr = cr)
+    funvals1 <- apply(X = newmat, MARGIN = 1, FUN = fun, ...)
+    mat[funvals1 > funvals, ] <- newmat[funvals1 > funvals, ]
+    funvals <- ifelse(funvals1 > funvals, funvals1, funvals)
+    rbest <- which.max(funvals)
+    if(sum(mat[rbest, ]) != 1) { # If unfeasible
+      if(show.progress) {
+        print('* Unfeasible, projecting back.')
+      }
+      trugen <- trugen - 1
+      if(gen <= trugen) {
+        projmat <- project_population_delecq(mat)
+        funvals1 <- apply(X = projmat, MARGIN = 1, FUN = fun, ...)
+        rbest <- which.max(funvals1)
+        if(pbest_val > fun(projmat[rbest, ], ...)) {
+          projmat[rbest, ] <- pbest_ind
+          rbest <- pbest
+        }
+        mat <- projmat
+      } else {
+        mat[rbest, ] <- pbest_ind
+      }
+    }
+    gen <- gen + 1
+    if(show.progress) {
+      print(paste0("** Value = ", funvals[rbest]))
+    }
+  }
+  return(list(params = mat[rbest, ], value = fun(mat[rbest, ], ...), generations = trugen))
+}
