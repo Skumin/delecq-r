@@ -48,3 +48,19 @@ NumericMatrix mutateC(NumericMatrix mat, NumericMatrix boxbounds, double fParam)
   }
   return newmat;
 }
+
+// [[Rcpp::export]]
+NumericMatrix project_populationC(NumericMatrix mat) {
+  NumericMatrix Emat(1, mat.ncol());
+  int Mmat = mat.ncol();
+  NumericMatrix projmat(mat.nrow(), mat.ncol());
+  for (int i = 0; i < mat.nrow(); i++) {
+    NumericVector num = mat(i, _ );
+    double z = sum(num) - 1;
+    double u = z/Mmat;
+    NumericMatrix v = transpose(Emat) * u;
+    NumericVector v1 = v( _, 0);
+    projmat(i, _ ) = num - v1;
+  }
+  return projmat;
+}

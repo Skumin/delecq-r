@@ -173,7 +173,7 @@ run_delecqC <- function(fun, ..., boxbounds, cr = 0.5, f.param = 0.5, maxgen = 5
       }
       trugen <- trugen - 1
       if(gen <= trugen) {
-        projmat <- project_population_delecq(mat)
+        projmat <- project_populationC(mat)
         funvals1 <- apply(X = projmat, MARGIN = 1, FUN = fun, ...)
         rbest <- which.max(funvals1)
         if(pbest_val > fun(projmat[rbest, ], ...)) {
