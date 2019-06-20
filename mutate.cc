@@ -64,3 +64,30 @@ NumericMatrix project_populationC(NumericMatrix mat) {
   }
   return projmat;
 }
+
+// [[Rcpp::export]]
+NumericMatrix gen_init_popC(int NP, NumericMatrix boxbounds) {
+  int dm = boxbounds.nrow();
+  NumericMatrix xi(NP, dm);
+  for (int i = 0; i < NP; i++) {
+    int boundsok = 0;
+    while (boundsok == 0) {
+      NumericVector nums(dm);
+      for (int j = 0; j < dm; j++) {
+        nums[j] = R::runif(0, 1) * (boxbounds(j, 1) - boxbounds(j, 0)) + boxbounds(j, 0);
+      }
+      nums = nums/sum(nums);
+      IntegerVector ids(dm);
+      for (int j = 0; j < dm; j++) {
+        if (nums[j] >= boxbounds(j, 0) && nums[j] <= boxbounds(j, 1)) {
+          ids[j] = 1;
+        }
+      }
+      if (sum(ids) == ids.size()) {
+        xi(i, _) = nums;
+        boundsok = 1;
+      }
+    }
+  }
+  return xi;
+}
