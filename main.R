@@ -2,7 +2,11 @@ crossover_deleq <- function(mat, newmat, cr) {
   return((1 - cr) * mat + cr * newmat)
 }
 
-run_deleq <- function(fun, ..., boxbounds, Emat, constr, cr = 0.7, f.param = 0.9, maxgen = 100, NP, show.progress = TRUE) {
+isapprox <- function(x, y, atol = 0, rtol = sqrt(.Machine$double.eps)) {
+  return(x == y | (is.finite(x) & is.finite(y) & abs(x - y) <= max(atol, rtol * max(abs(x), abs(y)))))
+}
+
+run_deleq <- function(fun, ..., NP, boxbounds, Emat, constr, cr = 0.7, f.param = 0.9, maxgen = 100, show.progress = TRUE) {
   gen <- 1
   mat <- gen_init_pop(NP = NP, boxbounds = boxbounds, Emat = Emat, constr = constr)
   funvals <- apply(X = mat, MARGIN = 1, FUN = fun, ...)
@@ -21,7 +25,7 @@ run_deleq <- function(fun, ..., boxbounds, Emat, constr, cr = 0.7, f.param = 0.9
     mat[funvals1 > funvals, ] <- newmat[funvals1 > funvals, ]
     funvals <- ifelse(funvals1 > funvals, funvals1, funvals)
     rbest <- which.max(funvals)
-    if(sum(mat[rbest, ]) != 1) { # If unfeasible
+    if(!any(isapprox(Emat %*% matrix(mat[rbest, ], ncol = 1), constr))) { # If unfeasible
       if(show.progress) {
         print('* Unfeasible, projecting back.')
       }
