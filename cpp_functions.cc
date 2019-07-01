@@ -111,3 +111,35 @@ NumericMatrix gen_init_pop(int NP, NumericMatrix boxbounds, NumericMatrix Emat, 
   }
   return xi;
 }
+
+// [[Rcpp::export]]
+NumericMatrix gen_init_pop_x0(int NP, NumericMatrix boxbounds, NumericMatrix Emat, NumericMatrix constr, NumericMatrix x0) {
+  int dm = boxbounds.nrow();
+  NumericMatrix xi(NP, dm);
+  NumericMatrix Mmat = mmult(Emat, transpose(Emat));
+  for (int i = 0; i < NP; i++) {
+    int boundsok = 0;
+    while (boundsok == 0) {
+      NumericMatrix d(dm, 1);
+      for (int j = 0; j < dm; j++) {
+        d(j, 0) = R::runif(0, 1) * (boxbounds(j, 1) - boxbounds(j, 0)) + boxbounds(j, 0);
+      }
+      d( _ , 0) = d( _ , 0)/sum(d( _ , 0));
+      NumericMatrix z = mmult(Emat, d);
+      NumericMatrix u = linsolve(Rcpp::as< arma::mat >(Mmat), Rcpp::as< arma::mat >(z));
+      NumericMatrix v = mmult(transpose(Emat), u);
+      NumericVector num = x0( _ , 0) + d( _ , 0) - v( _ , 0);
+      IntegerVector ids(dm);
+      for (int j = 0; j < dm; j++) {
+        if (num[j] >= boxbounds(j, 0) && num[j] <= boxbounds(j, 1)) {
+          ids[j] = 1;
+        }
+      }
+      if (sum(ids) == ids.size()) {
+        xi(i, _ ) = num;
+        boundsok = 1;
+      }
+    }
+  }
+  return xi;
+}
